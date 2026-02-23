@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     // Proses pengiriman email
     await transporter.sendMail({
       from: `"Web SMPIT Thoriqul Jannah" <${process.env.EMAIL_USER}>`,
-      to: 'info@smpitthoriquljannah.sch.id', // GANTI DENGAN EMAIL SEKOLAH ANDA YANG BENAR
+      to: 'info@smpit-thoriquljannah.sch.id', // GANTI DENGAN EMAIL SEKOLAH ANDA YANG BENAR
       replyTo: email,
       subject: `Pesan Baru dari Pengunjung Website (${email})`,
       text: pesan,
