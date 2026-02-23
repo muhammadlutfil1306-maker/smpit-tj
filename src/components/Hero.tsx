@@ -1,45 +1,105 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Play } from 'lucide-react';
 import { MorphReveal } from './ui/MorphReveal';
 import { SectionReveal } from './ui/SectionReveal';
 
+// --- KOMPONEN BACKGROUND GELOMBANG ---
+const WaveBackground = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width: number, height: number;
+    let waves: any[] = [];
+    let animationId: number;
+
+    const resize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    const initWaves = () => {
+      waves = [];
+      for (let i = 0; i < 3; i++) {
+        waves.push({
+          y: height * 0.5,
+          len: 0.002 + Math.random() * 0.005,
+          amp: 40 + Math.random() * 40,
+          speed: 0.005 + Math.random() * 0.01,
+          off: Math.random() * Math.PI * 2
+        });
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      waves.forEach((w, i) => {
+        ctx.beginPath();
+        // Warna garis gelombang biru terang
+        ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 + (i * 0.1)})`;
+        ctx.lineWidth = 2;
+        for (let x = 0; x < width; x++) {
+          ctx.lineTo(x, w.y + Math.sin(x * w.len + w.off) * w.amp * Math.sin(w.off * 0.5));
+        }
+        ctx.stroke();
+        w.off += w.speed;
+      });
+      animationId = requestAnimationFrame(draw);
+    };
+
+    const handleResize = () => {
+      resize();
+      initWaves();
+    };
+
+    window.addEventListener('resize', handleResize);
+    resize();
+    initWaves();
+    draw();
+
+    // Cleanup memori saat pindah halaman
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return (
+    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none rounded-none">
+      {/* Warna Dasar Gelap */}
+      <div className="absolute inset-0 bg-[#0B1120] z-[-3]" />
+      
+      {/* Canvas Efek Gelombang */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 z-[-2] w-full h-full opacity-50 mix-blend-screen"
+      />
+      
+      {/* Overlay Gradasi agar menyatu */}
+      <div
+        className="absolute inset-0 z-[-1]"
+        style={{
+          background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, #0B1120 90%)'
+        }}
+      />
+    </div>
+  );
+};
+
+// --- KOMPONEN HERO UTAMA ---
 export const Hero: React.FC = () => {
   return (
-    <SectionReveal direction="fade" className="container mx-auto px-6 h-full flex flex-col justify-center relative z-10 pt-12">
+    <SectionReveal direction="fade" className="container mx-auto px-6 h-full flex flex-col justify-center relative z-10 pt-12 overflow-hidden">
 
-      {/* Decorative Glow — animated */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: false, amount: 0.2 }}
-        transition={{ duration: 1.5, ease: 'easeOut' }}
-        className="absolute top-20 right-20 pointer-events-none mix-blend-overlay"
-      >
-        <div className="w-80 h-80 rounded-full bg-blue-500/15 blur-[100px]" />
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: false, amount: 0.2 }}
-        transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
-        className="absolute bottom-32 left-10 pointer-events-none mix-blend-overlay"
-      >
-        <div className="w-52 h-52 rounded-full bg-indigo-500/10 blur-[80px]" />
-      </motion.div>
+      {/* Memanggil Background Gelombang */}
+      <WaveBackground />
 
-      {/* Gold accent glow */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: false, amount: 0.2 }}
-        transition={{ duration: 2, delay: 0.5 }}
-        className="absolute top-1/3 left-1/4 pointer-events-none"
-      >
-        <div className="w-64 h-64 rounded-full bg-yellow-500/8 blur-[120px]" />
-      </motion.div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
         <div className="text-left max-w-2xl">
 
           <MorphReveal animation="slideRight" easing="bouncy" delay={0.1}>
@@ -51,10 +111,10 @@ export const Hero: React.FC = () => {
             </div>
           </MorphReveal>
 
-          {/* Main Heading — Cinzel Font */}
+          {/* Main Heading — Cinzel Font dengan spasi (tracking) renggang */}
           <MorphReveal animation="clip" easing="sharp" duration={1} delay={0.2}>
             <h1
-              className="text-5xl md:text-7xl lg:text-8xl mb-6 leading-[0.92] tracking-widest"
+              className="text-5xl md:text-7xl lg:text-8xl mb-6 leading-[0.92] tracking-tight"
               style={{ fontFamily: "'Cinzel', serif", fontWeight: 400 }}
             >
               <span style={{ color: '#F9F9F9' }}>SMP IT</span>
